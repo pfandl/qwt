@@ -77,8 +77,9 @@ template< class Point, typename Value >
 class QwtClip::TopEdge
 {
   public:
-    inline TopEdge( Value, Value, Value y1, Value ):
+    inline TopEdge( Value, Value, Value y1, Value y2):
         m_y1( y1 )
+      , m_y2( y2 )
     {
     }
 
@@ -89,12 +90,22 @@ class QwtClip::TopEdge
 
     inline Point intersection( const Point& p1, const Point& p2 ) const
     {
-        double dx = ( p1.x() - p2.x() ) / double( p1.y() - p2.y() );
-        return Point( static_cast< Value >( p2.x() + ( m_y1 - p2.y() ) * dx ), m_y1 );
+        Point fixed_p1 = p1;
+        Point fixed_p2 = p2;
+
+        if (!qIsFinite(fixed_p1.y()))
+            fixed_p1.setY(m_y2);
+        if (!qIsFinite(fixed_p2.y()))
+            fixed_p2.setY(m_y2);
+
+        double dx = ( fixed_p1.x() - fixed_p2.x() ) / double( fixed_p1.y() - fixed_p2.y() );
+        return Point( static_cast< Value >(
+                         fixed_p2.x() + ( m_y1 - fixed_p2.y() ) * dx ), m_y1 );
     }
 
   private:
     const Value m_y1;
+    const Value m_y2;
 };
 
 template< class Point, typename Value >
@@ -113,8 +124,17 @@ class QwtClip::BottomEdge
 
     inline Point intersection( const Point& p1, const Point& p2 ) const
     {
-        double dx = ( p1.x() - p2.x() ) / double( p1.y() - p2.y() );
-        return Point( static_cast< Value >( p2.x() + ( m_y2 - p2.y() ) * dx ), m_y2 );
+        Point fixed_p1 = p1;
+        Point fixed_p2 = p2;
+
+        if (!qIsFinite(fixed_p1.y()))
+            fixed_p1.setY(m_y2);
+        if (!qIsFinite(fixed_p2.y()))
+            fixed_p2.setY(m_y2);
+
+        double dx = ( fixed_p1.x() - fixed_p2.x() ) / double( fixed_p1.y() - fixed_p2.y() );
+        return Point( static_cast< Value >(
+                         fixed_p2.x() + ( m_y2 - fixed_p2.y() ) * dx ), m_y2 );
     }
 
   private:
